@@ -1,0 +1,173 @@
+<!--
+页面名称:register.html
+页面功能:注册界面
+说明:与登录类似,主要难点在于验证码与邮箱
+-->
+{% extends "base.html" %} {% import 'bootstrap/wtf.html' as wtf %} {% block
+    title %} 用户注册 {% endblock %} {% block content %}
+    <body>
+      <main>
+        <div class="container">
+          <div class="jumbotron pt-5 pb-1 mt-2">
+            <div class="row">
+              <div class="col-md-8">
+                <h3 class="text-muted"><b>欢迎来到BugShow作业讨论平台</b></h3>
+                <hr class="bg-primary" />
+                <p><b>平台注意事项：</b></p>
+                <ul>
+                  <li>本平台面向同济大学计算机专业学生开放</li>
+                  <li>未选课同学请不要注册</li>
+                  <li>目前经营范围：《软件工程》</li>
+                </ul>
+                <!--<img src="{{ url_for('static', filename='img/index.png') }}" class="rounded img-fluid">-->
+                <div id="demo" class="carousel slide" data-ride="carousel">
+                  <!-- 指示符 -->
+                  <ul class="carousel-indicators">
+                    <li data-target="#demo" data-slide-to="0" class="active"></li>
+                    <li data-target="#demo" data-slide-to="1"></li>
+                    <li data-target="#demo" data-slide-to="2"></li>
+                  </ul>
+    
+                  <!-- 轮播图片 -->
+                   <div class="carousel-inner">
+                    <div class="carousel-item active">
+                      <img
+                        src="{{ url_for('static', filename='img/index.png') }}" class=" rounded img-fluid"
+                      />
+                    </div>
+                    <div class="carousel-item">
+                      <img
+                        src="https://static.runoob.com/images/mix/img_fjords_wide.jpg" class=" rounded img-fluid"
+                      />
+                    </div>
+                    <div class="carousel-item">
+                      <img
+                        src="https://static.runoob.com/images/mix/img_mountains_wide.jpg" class=" rounded img-fluid"
+                      />
+                    </div>
+                  </div>
+    
+    
+                  <!-- 左右切换按钮 -->
+                  <a class="carousel-control-prev" href="#demo" data-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                  </a>
+                  <a class="carousel-control-next" href="#demo" data-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                  </a>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card mb-3 w-100 bg-light">
+                  <div class="card-header">
+                    <h4 class="text-muted"><strong>用户注册</strong></h4>
+                  </div>
+                  <div class="card-body">
+                    {% include "_flash.html" %}
+                    <form
+                      class="bs-component"
+                      action="/auth/register"
+                      method="post"
+                    >
+                      {{ form.csrf_token }}
+                      <div class="row">
+                        <div class="col">{{ wtf.form_field(form.user_role) }}</div>
+                      </div>
+                      {{ wtf.form_field(form.user_name) }} {{
+                      wtf.form_field(form.nickname) }} {{
+                      wtf.form_field(form.user_email) }} {{
+                      wtf.form_field(form.password) }} {{
+                      wtf.form_field(form.confirm_pwd) }}
+                      <label for="captcha">验证码</label>
+                      <div class="input-group">
+                        <input
+                          type="text"
+                          class="form-control"
+                          name="captcha"
+                          id="captcha"
+                          placeholder="请输入验证码"
+                          aria-required="true"
+                          aria-describedby="captcha"
+                          required
+                        />
+                        <div class="input-group-append">
+                          <button
+                            class="btn btn-success"
+                            onclick="sendCapt()"
+                            id="sendCaptcha"
+                          >
+                            发送
+                          </button>
+                        </div>
+                      </div>
+                      <p class="p-hint" style="display: none" id="captmes">
+                        验证码发送成功,10分钟内有效!
+                      </p>
+                      {{ form.submit }}
+                      <hr />
+                      <small
+                        >已有账号?
+                        <a
+                          style="text-decoration: none"
+                          href="{{ url_for('.login') }}"
+                          >登录.</a
+                        >
+                      </small>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+      <script>
+        let time = 60;
+        let reg =
+          /^\w+((-\w+)|(\.\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z0-9]+$/;
+    
+        function sendCapt() {
+          let $sendBtn = $("#sendCaptcha");
+          let $email = $("#user_email");
+          let $username = $("#user_name");
+          if (
+            $username.val() === "" ||
+            $email.val() === "" ||
+            !reg.test($email.val())
+          ) {
+            return false;
+          }
+          $sendBtn.attr("disabled", true);
+          document.getElementById("captmes").style = "display:block";
+          getRandomCode($sendBtn);
+          $.ajax({
+            url: "/normal/send-email",
+            type: "post",
+            data: { user_name: $username.val(), user_email: $email.val() },
+            success: function (res) {
+              if (res.tag) {
+                $(".p-hint").slideDown(500).delay(3000).hide(500);
+              }
+            },
+          });
+        }
+    
+        //倒计时
+        function getRandomCode(obj) {
+          if (time === 0) {
+            time = 60;
+            obj.text("发送");
+            obj.attr("disabled", false);
+            return;
+          } else {
+            time--;
+            obj.text(time + "(秒)");
+          }
+          setTimeout(function () {
+            getRandomCode(obj);
+          }, 1000);
+        }
+      </script>
+    </body>
+    {% endblock %}
+    

@@ -1,0 +1,55 @@
+<!--
+页面名称:new-post.html
+页面功能:发布一个新的帖子,具有一个文本编辑器
+-->
+{% extends "base.html" %}
+ {% import 'bootstrap/wtf.html' as wtf %}
+ {% block title %}
+     发布新的帖子
+ {% endblock %}
+ {% block content %}
+     <body>
+     <main>
+         <div class="container mt-3">
+             <h3 class="text-info"><strong>新的讨论</strong></h3>
+             <hr class="bg-secondary">
+             <form action="/post/new" method="post">
+                 {{ form.csrf_token }}
+                 {{ wtf.form_field(form.title) }}
+                 <div class="row">
+                     <div class="col">
+                        {{ wtf.form_field(form.problem) }}
+                     </div>
+                 </div>
+                 {{ form.body }}
+                 <div class="text-right">
+                     {{ form.submit }}
+                 </div>
+             </form>
+         </div>
+     </main>
+     </body>
+     {{ ckeditor.load() }}
+     {{ ckeditor.config(name='body') }}
+     <script>
+        CKEDITOR.on( 'instanceReady', function( evt ) 
+        {
+            evt.editor.dataProcessor.htmlFilter.addRules( {
+                elements: {
+                    img: function(el) {
+                        el.addClass('img-fluid d-block mx-auto');
+                    },
+                    table: function (el){
+                        el.addClass('table table-responsive');
+                    },
+                    thead: function (el){
+                        el.addClass('thead-light');
+                    },
+                    blockquote: function (el){
+                        el.addClass('m-blockquote');
+                    }
+                }
+            });
+        });
+    </script>
+ {% endblock %}

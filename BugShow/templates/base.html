@@ -1,0 +1,155 @@
+<!--
+页面名称:base.html
+页面功能:Jinja2渲染的基础页面
+说明:包括导航栏,页头页尾等公共部分
+-->
+<!DOCTYPE html>
+{% from "macro.html" import nav_item with context %}
+<!--suppress ALL -->
+<html lang="zh-hans">
+{% block head %}
+<!--bootstrap/jquery/本地css样式的引入-->
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}-BugShow</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <link rel="shortcut icon" href="{{url_for('static', filename='img/favorite.png')}}" type="image/x-icon">
+    <link rel="icon" href="{{ url_for('static', filename = 'img/favorite.png') }}" type="image/x-icon">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/popper.js/1.15.0/umd/popper.min.js"></script>
+    <link href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='themes/flatly.bootstrap.min.css')}}">
+    <!-- <link rel="stylesheet" href="{{url_for('static',filename='css/nav.css')}}"> -->
+    <link rel="stylesheet" href="{{url_for('static',filename='css/footer.css')}}">
+    <link rel="stylesheet" href="{{url_for('static',filename='css/fonts.css')}}">
+    <script src="{{ url_for('static', filename='validator/form-validation.js') }}"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</head>
+{% endblock %}
+<!--红点:显示通知数目的气泡样式-->
+<style>
+    .redspot {
+    min-width: 16px;
+    height: 16px;
+    padding: 0 3px;
+    border-radius: 8px;
+    line-height: 16px;
+    font-size: 12px;
+    text-align: center;
+    color: #fff;
+    position: absolute;
+    top: 10px;
+    right: -10px;
+    z-index: 30;
+    background-color: #FA5A57;
+}
+</style>
+
+<script>
+$(document).ready(function(){
+    $('[data-toggle="popover"]').popover();   
+});
+</script>
+<body>
+    <div id="container">
+    <!--导航栏-->
+        {% block nav %}
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top" style="padding:.3rem "
+            onhashchange="fix_the_nav();">
+            <div class="container align-self-end">
+                <!-- logo -->
+                <a class="navbar-brand" href="/"><i class="fa fa-bbs"></i><i class="fa fa-bug fa-spin" style="border-radius:30px;box-shadow: 0 0 10px rgba(124, 204, 253, 0.911); border:1px "  aria-hidden="true"></i>&nbsp&nbspBugShow</a>
+                <!-- 下拉菜单 -->
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navHome"
+                    aria-controls="navHome" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navHome">
+                    <ul class="navbar-nav navbar-bbs ml-lg-auto">
+                        <!-- 搜索输入框 与 搜索按钮 未实装 -->
+                        <form class="form-inline" action="/index/search" method="POST">
+
+                            <input class=" form-control input-text " type="search" style="border-radius:50px;" placeholder="搜索你的问题"
+                                maxlength="15" aria-label="Search" name="search" required>
+
+                            <button class="btn btn-success search-button button-hover ml-3 " style="border-radius:50px" type="submit"><i
+                                    class="fa fa-search fa-fw"></i>搜索</button>
+
+                        </form>
+
+                    </ul>
+                <ul class="navbar-nav ml-auto">
+             <li class="nav-item dropdown mr-2">
+                            <a class="nav-link dropdown-toggle" href="#" id="talk" data-toggle="dropdown"
+                                aria-haspopup="true" aria-expanded="false"><i class="fa fa-suitcase fa-fw"></i>&nbsp工作台</a>
+                            <div class="dropdown-menu" aria-labelledby="talk">
+                              <a class="dropdown-item" href="/auth/change-avatar"><i class="fa fa-fw fa-user mr-2"></i>修改头像</a>
+                            <a class="dropdown-item" href="/auth/change-passwd"><i class="fa fa-fw fa-cog mr-2"></i>修改密码</a>
+                            {% if current_user.role_id == 0 %}
+                                <a class="dropdown-item" ><i class="fa fa-fw fa-magnet mr-2"></i>后台管理</a>
+                            {% endif %}
+                            <a class="dropdown-item" href="/auth/logout" ><i class="fa fa-fw fa-sign-out mr-2"></i>登出</a>
+                            </div>
+                        </li>
+
+
+                        <li class="nav-item dropdown mr-2">
+                            <a class="nav-link dropdown-toggle" href="#" id="talk" data-toggle="dropdown"
+                                aria-haspopup="true" aria-expanded="false"><i class="fa fa-bell-o fa-fw"></i>&nbsp通知</a>
+                              {% if current_user.is_authenticated and current_user.unreadnotice > 0 %}
+                                <div class="redspot">{{ current_user.unreadnotice }}</div>
+                             {% endif %}
+
+                            <div class="dropdown-menu" aria-labelledby="talk">
+                                <a class="dropdown-item" href="/notice/browse">通知记录</a>
+                                {% if current_user.role_id!= 1  %}
+                                    <a class="dropdown-item" href="/notice/new">发布通知</a>
+                                {% endif %}
+                            </div>
+                        </li>
+                        <li class="nav-item dropdown ">
+                            <a class="nav-link " href="#" id="talk"   data-toggle="popover"  data-content="QQ:1193354569" data-placement="bottom" data-trigger="focus"
+                                aria-haspopup="true" aria-expanded="false"><i class="fa fa-phone fa-fw"></i>&nbsp联系我们</a> 
+                               
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <div style="margin-top:4rem;"></div>
+
+
+
+        {% endblock %}
+        <div id="page" style="padding-top: 0px; padding-bottom: 80px;">
+            {% block content %}
+            {% endblock %}
+        </div>
+        {% block footer %}
+        <footer class="footer-bg bg-light">
+            <div class="container">
+
+<!--页尾-->
+                <div class="col-12 mt-2 pb-2 text-center" style="font-size: 10px;">
+                    <div class="card-body text-center px-0 f-14">
+                        <p class="card-text mb-1">Copyright&nbsp;©&nbsp;<span>2021</span>
+                            <a href="https://gitlab.com/tj-cs-swe/cs10102302-2021/bugubird/bugshow" target="_blank"
+                                title="官网">BuguBird</a>&nbsp;Design&nbsp;by&nbsp;Flask.
+                        </p>
+                    </div>
+                </div>
+            </div>
+    </div>
+    </footer>
+    {% endblock %}
+    </div>
+</body>
+{% block script %}
+<script>
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+    })
+</script>
+{% endblock %}
+
+</html>

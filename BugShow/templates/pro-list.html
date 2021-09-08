@@ -1,0 +1,97 @@
+<!--
+页面名称:pro-list.html
+页面功能:问题与作业界面
+-->
+<!-- <script src="{{ url_for('static', filename='js/pro-list.js' ) }}"></script> -->
+<script>
+    $("document").ready(function(){
+            $('.deletebtn').hide()
+        })
+    function newPro() {
+        let newpro = document.getElementById("newpro");
+        newpro.innerHTML = "<form class='form-group' action='/index/newPro' method='Post'><input class='form-control' name='name' type='text'> </form>"
+    }
+    function deletePro(){
+        $("document").ready(function(){
+            $('.deletebtn').toggle()
+        })
+    }
+</script>
+
+<style>
+    #newpro > li {
+      border: 0;
+  
+      margin-bottom: 2px;
+      border-radius: 5px;
+    }
+  </style>
+  <div
+    class="col-md-3 mt-1 bg-light border-secondary"
+    style="border-radius: 20px">
+    <div class="row mt-2">
+      <div class="text-center text-primary mt-1 ml-2">
+        <a class="nav-link active disabled text-dark" style="font-size: 1rem">
+          <i class="fa fa-book" aria-hidden="true"></i>&nbsp 作业列表
+          </a>
+      </div>
+      {% if current_user.role_id == 2 %}
+      <!-- <div class="ml-auto">
+        <button class="btn" onclick="newPro()">
+          <span class="glyphicon glyphicon-plus"></span>
+        </button>
+      </div> -->
+      <div class="ml-auto btn-group ">
+        <button class="btn w-25" onclick="newPro()">
+            <span class="glyphicon glyphicon-plus"></span>
+        </button>
+        <button class="btn w-25" onclick="deletePro()">
+            <span class="glyphicon glyphicon-minus"></span>
+        </button>
+        </div>
+      {% endif %}
+    </div>
+    <hr />
+  
+
+<!-- <div class="col-md-2 mt-1 bg-light" style="height: 600px;">
+    <div class="row mt-2">
+        <div class="text-center text-primary mt-1 ml-2">
+            作业列表
+        </div>
+        {% if current_user.role_id == 2 %}
+        <div class="ml-auto btn-group ">
+        <button class="btn w-25" onclick="newPro()">
+            <span class="glyphicon glyphicon-plus"></span>
+        </button>
+        <button class="btn w-25" onclick="deletePro()">
+            <span class="glyphicon glyphicon-minus"></span>
+        </button>
+        </div>
+        {% endif %}
+    </div>
+    <hr> -->
+    <div style="overflow: auto;height: 500px;">
+    <!-- <ul>
+        <div id="newpro"></div>
+        {% for item in problems %}
+            <li><a class="deletebtn" href="/index/delete/{{item.id}}"><span class="glyphicon glyphicon-minus"></span></a><a href="/index/{{item.id}}">{{item.name}} </a></li>
+
+        {% endfor %}
+    </ul> -->
+
+    <ul class="list-group" style="radius-border: 100px">
+        <div id="newpro"></div>
+          {% for item in problems %}
+          <li class="list-group-item" style="list-style-type: none">
+            <a class="deletebtn" href="/index/delete/{{item.id}}"><span class="glyphicon glyphicon-minus"></span></a>
+            <a href="/index/{{item.id}}" class="text-dark"
+              ><i class="fa fa-question" aria-hidden="true"></i
+              >&nbsp&nbsp{{item.name}}</a
+            >
+          </li>
+          {% endfor %}
+      </ul>
+    </div>
+</div>
+

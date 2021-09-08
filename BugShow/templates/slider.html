@@ -1,0 +1,65 @@
+<!--
+页面名称:slider.html
+页面功能:用户侧边功能浮窗
+说明:登录前提示登录,检测登录后可用作快捷工具栏以及选择登出
+-->
+<div class="col-md-4 mt-1">
+    <div class="card border-secondary mb-2">
+      <div class="card-header"><i class="fa fa-user mr-2"></i>用户</div>
+      <div class="card-body">
+        {% if not current_user.is_authenticated %}
+        <div>
+          <small class="text-danger"><b>您尚未登录！</b></small
+          >请先
+          <a href="/auth/login"><span class="badge badge-info">登录</span></a> 或
+          <a href="/auth/register"
+            ><span class="badge badge-success">注册</span></a
+          >！
+        </div>
+        {% else %}
+        <div class="d-flex">
+          <img
+            src="{{ url_for('static', filename=current_user.avatar ) }}"
+            width="50"
+            height="50"
+            class="rounded avatar-50"
+            style="border-radius: 20px"
+          />
+  
+          <div  class="mr-auto">
+            <p class="mb-1 ml-1 text-success">
+              <b>{{ current_user.nickname }} ({{ current_user.role.name }})</b>
+            </p>
+            <p class="mb-1 ml-1 text-muted">
+              <small>@{{ current_user.username }}</small>
+            </p>
+          </div>
+          {% if current_user.role.name == "老师"%}
+             <div class="d-flex flex-row-reverse ml-3">
+                <a href="/post/newt" class="btn btn-info h-75 ml-2 "><small><i class="fa fa-plus"></i>&nbsp 发布</small></a>
+             </div>
+          {% else %}
+             <div class="d-flex flex-row-reverse ml-3">
+                <a href="/post/new" class="btn btn-info h-75 ml-2 "><small><i class="fa fa-plus"></i>&nbsp 发布</small></a>
+             </div>
+          {% endif %}
+         
+          <div class="d-flex flex-row-reverse">
+            <a href="/auth/logout" class="btn btn-info h-75 ml-1 "
+              ><small><i class="fa fa-sign-out"></i>&nbsp 登出</small></a
+            >
+          </div>
+        </div>
+  
+        {% endif %}
+      </div>
+    </div>
+  
+    <div class="card border-secondary mb-3" >
+     <div class="card-header"><i class="fa fa-paper-plane mr-2"></i>公告</div>
+      <div class="card-body">
+        <p class="card-text">本作业讨论平台尚处于测试阶段。</p>
+      </div>
+    </div>
+  </div>
+  

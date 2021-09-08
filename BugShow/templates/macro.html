@@ -1,0 +1,544 @@
+<!--
+页面名称:macro.html
+页面功能:Jinja宏定义页面,主要包括首页帖子显示与分页功能
+-->
+{% macro nav_item(endpoint, text, fa) %}
+    <!--suppress ALL -->
+    <li class="nav-item" style="margin-right: 50px;">
+        <a class="nav-link {% if request.endpoint and request.endpoint==endpoint %}active{% endif %}" href="{{ endpoint }}">
+            <i class="{{ fa }}"></i>
+            {{ text }}
+        </a>
+    </li>
+{% endmacro %}
+
+<!-- 首页帖子显示列表宏定义 -->
+{% macro post_item(posts) %}
+    <ul class="list-group">
+        {%if not posts%}
+            <li class="list-group-item pl-1 ">
+                <div class="d-flex ">
+                    <div class="flex-grow-1">
+                        {% if current_user.role.name == "老师"%}
+                            <a class="text-decoration-no<a class="text-decoration-none" href="/post/newt">暂无任何讨论, 快去发布新解答吧!</a>
+                        {% else %}
+                            <a class="text-decoration-no<a class="text-decoration-none" href="/post/new">暂无任何讨论, 快去发布新讨论吧!</a>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </li>
+        {% else %}
+        {% for post in posts %}
+            <li class="list-group-item pl-1 ">
+                <div class="d-flex ">
+                    <div class="flex-grow-1">
+                        {% if post.star %}
+                        <a class="text-decoration-none text-warning mark font-weight-bold " href="{{ url_for('post.read', post_id=post.id) }}"><i class="fa fa-fw fa-diamond mr-2"></i>{{ post.title }}</a>
+                        {% else %}
+                        <a class="text-decoration-no<a class="text-decoration-none" href="{{ url_for('post.read', post_id=post.id) }}">{{ post.title }}</a>
+                        {% endif %}
+                        
+                        <div class="row mt-2">
+                            <div class="col">
+                                <p class="mb-0 text-muted f-12">
+                                <a class="badge badge-secondary mr-2">{{ post.pro.name }}</a>
+                                <i class="fa fa-user-o mr-1"></i>
+                                <a class="text-decoration-none" >{{post.user.nickname}}</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </li>
+        {% endfor %}
+        {% endif %}
+    </ul>
+{% endmacro %}
+
+{% macro _arg_url_for(endpoint, base) %}
+    {# calls url_for() with a given endpoint and **base as the parameters,
+   additionally passing on all keyword_arguments (may overwrite existing ones)
+ #}
+    {%- with kargs = base.copy() -%}
+        {%- do kargs.update(kwargs) -%}
+        {{ url_for(endpoint, **kargs) }}
+    {%- endwith %}
+{%- endmacro %}
+
+<!-- 分页渲染 -->
+{% macro render_pagination(pagination,
+                           endpoint=None,
+                           prev=('&laquo;')|safe,
+                           next=('&raquo;')|safe,
+                           size=None,
+                           ellipses='…',
+                           args={},
+                           fragment='',
+                           align=''
+                           )-%}
+    {% if fragment != '' and not fragment.startswith('#') %}{% set fragment = '#' + fragment %}{% endif %}
+    {% with url_args = {} %}
+        {%- do url_args.update(request.view_args if not endpoint else {}),
+       url_args.update(request.args if not endpoint else {}),
+       url_args.update(args) -%}
+        {% with endpoint = endpoint or request.endpoint %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination{% if size %} pagination-{{ size }}{% endif %} {% if align == 'center' %}justify-content-center{% elif align == 'right' %}justify-content-end{% endif %}"{{ kwargs|xmlattr }}>
+                    {# prev and next are only show if a symbol has been passed. #}
+                    {% if prev != None -%}
+                        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                            <a class="page-link" href="{{ _arg_url_for(endpoint, url_args, page=pagination.prev_num) if pagination.has_prev else '#' }}{{ fragment }}">{{ prev }}</a>
+                        </li>
+                    {%- endif -%}
+
+                    {%- for page in pagination.iter_pages() %}
+                        {% if page %}
+                            {% if page != pagination.page %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ _arg_url_for(endpoint, url_args, page=page) }}{{ fragment }}">{{ page }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item active">
+                                    <a class="page-link" href="#">{{ page }} <span class="sr-only">(current)</span></a>
+                                </li>
+                            {% endif %}
+                        {% elif ellipses != None %}
+                            <li class="page-item disabled"><a class="page-link" href="#">{{ ellipses }}</a></li>
+                        {% endif %}
+                    {%- endfor %}
+
+                    {% if next != None -%}
+                        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                            <a class="page-link" href="{{ _arg_url_for(endpoint, url_args, page=pagination.next_num) if pagination.has_next else '#' }}{{ fragment }}">{{ next }}</a>
+                        </li>
+                    {%- endif -%}
+                </ul>
+            </nav>
+        {% endwith %}
+    {% endwith %}
+{% endmacro %}
+
+<!-- 举报弹窗 -->
+{% macro reportModal() %}
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">举报帖子</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form action="/post/report/" method="post">
+                        <input value="{{ post.id }}" name="postId" hidden="hidden">
+                        <div class="form-group">
+                            <label>举报类型</label>
+                            <select name="reportCate" class="form-control">
+                                <option>违反法律、时政敏感</option>
+                                <option>色情淫秽、血腥暴恐</option>
+                                <option>未经许可的广告行为</option>
+                                <option>低俗谩骂、攻击引战</option>
+                                <option>造谣谩骂</option>
+                                <option>其他违法版规的内容</option>
+                            </select>
+                            <label for="reportReason">举报理由</label>
+                            <textarea required class="form-control report-textarea" id="reportReason" name="reportReason" placeholder="请输入举报理由"></textarea>
+                        </div>
+                        <div class="text-right">
+                            <input type="submit" class="btn btn-outline-danger">
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+<!-- markdown语法弹窗 -->
+{% macro markdownHelp() %}
+    <div class="modal fade" id="markdownHelp" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Markdown语法帮助</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    可能有些同学对Markdown语法不是很了解,下面是一些简单的语法介绍!你们也可以访问这个<a href="https://www.runoob.com/markdown/md-tutorial.html" class="text-decoration-none" target="_blank">链接</a>学习怎么使用Markdown语法!
+                    <table class="table table-hover">
+                        <thead>
+                        <tr>
+                            <th scope="col">类型</th>
+                            <th scope="col">语法</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr class="table-secondary">
+                            <td>标题</td>
+                            <td># H1 ## H2 ### H3</td>
+                        </tr>
+                        <tr class="table-secondary">
+                            <td>粗体</td>
+                            <td>**bold**</td>
+                        </tr>
+                        <tr class="table-secondary">
+                            <td>无序表</td>
+                            <td>* a</td>
+                        </tr>
+                        <tr class="table-secondary">
+                            <td>有序表</td>
+                            <td>1. a</td>
+                        </tr>
+                        <tr class="table-secondary">
+                            <td>引用</td>
+                            <td>> 引用内容</td>
+                        </tr>
+                        <tr class="table-secondary">
+                            <td>链接</td>
+                            <td>[title](http://...)</td>
+                        </tr>
+                        <tr class="table-secondary">
+                            <td>图片</td>
+                            <td>![alt](http://...)</td>
+                        </tr>
+                        <tr class="table-secondary">
+                            <td>代码</td>
+                            <td>`code`</td>
+                        </tr>
+                        <tr class="table-secondary">
+                            <td>换行</td>
+                            <td>&lt;br&gt;</td>
+                        </tr>
+                        <tr class="table-secondary">
+                            <td>代码片段</td>
+                            <td>```python <br>
+                                def test():<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;print('Hello world!')<br>
+                                ```</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+<!-- 删除确认弹窗 -->
+{% macro confirmDelete() %}
+    <div class="modal fade" id="confirm-delete" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmModalLabel">确认?</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <p>确定删除该条评论吗?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info" data-dismiss="modal">取消</button>
+                    <button class="btn btn-danger btn-confirm" id="deleteBtn" onclick="submitDelete($(this).val())">删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+<!-- 用户主页的header -->
+{% macro profile_header() %}
+    <div class="row">
+        <div class="col-md-3 col-lg-3 text-center">
+            <img class="img-profile-bg" alt="{{ user.nickname }}" src="{{ user.avatar }}">
+        </div>
+        <div class="col-md-9 col-lg-9 div-center-md">
+            <h3>{{ user.nickname }}</h3>
+            <p class="text-muted">@{{ user.username }}</p>
+            <p>
+                <span class="mr-2">{{ user.post|length }}篇帖子</span>
+                <a href="{{ url_for('profile.follower', user_id=user.id) }}" class="mr-2 span-hand a-link text-decoration-none">{{ user.followers.count() }}位粉丝</a>
+                <a href="{{ url_for('profile.following', user_id=user.id) }}" class="mr-2 span-hand a-link text-decoration-none">{{ user.following.count() }}个关注</a>
+            </p>
+            {% if current_user.id == user.id %}
+                <a class="btn btn-outline-success" href="{{ url_for('user.index', user_id=current_user.id) }}">个人主页</a>
+            {% else %}
+                {% if current_user.is_following(user) %}
+                    <a class="btn btn-outline-danger" href="/profile/unfollow/{{ user.id }}/">取消关注</a>
+                {% else %}
+                    <a class="btn btn-outline-danger" href="/profile/follow/{{ user.id }}/">关注TA</a>
+                {% endif %}
+                <!-- 弹出私信窗口 -->
+                <a class="btn btn-outline-primary">私信</a>
+            {% endif %}
+
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro profile_moment(tabName) %}
+    <div class="mt-4">
+        <ul class="nav nav-tabs nav-justified">
+            <li class="nav-item">
+                <a class="nav-link {% if tabName == '帖子' %}active{% endif %}" href="/profile/user/{{ user.id }}/">帖子</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if tabName == '评论' %}active{% endif %}" href="/profile/comment/{{ user.id }}/">评论</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if tabName == '收藏' %}active{% endif %}" href="/profile/collect/{{ user.id }}/">收藏</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if tabName == '社交' %}active{% endif %}" href="/profile/social/{{ user.id }}/">社交</a>
+            </li>
+        </ul>
+    </div>
+{% endmacro %}
+
+<!-- 显示帖子评论区域宏定义 -->
+{% macro commentDiv(comment, post, anonymous=False) %}
+    <img src="{{ url_for('static', filename=comment.author.avatar ) }}"  width="50" height="50" class="rounded avatar-50">
+    <div class="d-flex">
+        <div>
+            <a class="ml-2 text-decoration-none" href="#">{{ comment.author.nickname }}</a>
+            <div class="d-flex">
+                <a class="text-decoration-none ml-2"><span class="badge badge-pill badge-secondary">{{ comment.author.role.name }}</span></a>
+                {% if post.author_id == comment.author_id %}
+                    <a class="text-decoration-none ml-2"><span class="badge badge-pill badge-info">发起人</span></a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+
+<!-- 在尺寸大的屏幕上显示的 -->
+{% macro user_card_lg(user) %}
+    <div class="user-card text-center">
+        <a href="{{ url_for('profile.index', user_id=user.id) }}">
+            <img class="rounded avatar-m" src="{{ user.avatar }}">
+        </a>
+        <h6>
+            <a class="text-decoration-none a-link" href="{{ url_for('profile.index', user_id=user.id) }}">{{ user.nickname }}</a>
+        </h6>
+        {% if current_user.is_following(user) %}
+            <a class="btn btn-outline-danger" href="{{ url_for('profile.unfollow_user', user_id=user.id) }}">取关</a>
+        {% else %}
+            <a class="btn btn-outline-success" href="{{ url_for('profile.follow_user', user_id=user.id) }}">关注</a>
+        {% endif %}
+    </div>
+{% endmacro %}
+
+<!-- 在小尺寸的屏幕上显示列表 -->
+{% macro user_card_md(user) %}
+    <li class="list-group-item">
+        <div class="d-flex">
+            <img  alt="avatar" class="img-profile-bg-50" src="{{ user.avatar }}">
+            <div class="ml-2 flex-grow-1">
+                <p class="mb-0"><a>{{ user.nickname }}</a></p>
+                <p class="mb-0"><a href="{{ url_for('profile.index', user_id=user.id) }}" class="span-blockquote text-decoration-none">@{{user.username}}</a></p>
+            </div>
+            {% if current_user.is_following(user) %}
+                <a class="btn btn-outline-danger btn-sm h-50" href="{{ url_for('profile.unfollow_user', user_id=user.id) }}">取关</a>
+            {% else %}
+                <a class="btn btn-outline-success btn-sm h-50" href="{{ url_for('profile.follow_user', user_id=user.id) }}">关注</a>
+            {% endif %}
+        </div>
+    </li>
+{% endmacro %}
+
+<!-- user page header -->
+{% macro user_page_header(title) %}
+    <div class="dropdown d-lg-none">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            {{title}}
+        </button>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <a class="dropdown-item text-decoration-none" href="{{ url_for('user.index', user_id=user.id) }}">个人资料</a>
+            <a class="dropdown-item text-decoration-none" href="{{ url_for('user.notifications', user_id=user.id) }}">通知</a>
+            <a class="dropdown-item text-decoration-none" href="{{ url_for('user.contact', user_id=user.id) }}">私信</a>
+            <a class="dropdown-item text-decoration-none" href="{{ url_for('user.edit_avatar', user_id=user.id) }}">修改头像</a>
+            <a class="dropdown-item text-decoration-none" href="{{ url_for('user.change_password', user_id=user.id) }}">修改密码</a>
+            <a class="dropdown-item text-decoration-none" href="{{ url_for('user.privacy_setting', user_id=user.id) }}">隐私设置</a>
+            <a class="dropdown-item text-decoration-none" href="{{ url_for('user.trash_station_post', user_id=user.id) }}">回收站</a>
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro user_page_header_ul(title) %}
+    <ul class="list-group list-group-flush d-lg-block d-none">
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <a class="{% if title == '个人资料' %}
+                a-link{% else %} li-fade
+            {% endif %} text-decoration-none" href="{{ url_for('user.index', user_id=user.id) }}">个人资料</a>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <a class="{% if title == '通知' %}
+                a-link{% else %} li-fade
+            {% endif %}  text-decoration-none" href="{{ url_for('user.notifications', user_id=user.id) }}">通知</a>
+            <span class="badge {% if notices %}
+                badge-danger
+                {% else %}
+                badge-secondary
+            {% endif %}  badge-pill">{{ notices|length }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <a class="{% if title == '私信' %}
+                a-link{% else %} li-fade
+            {% endif %}  text-decoration-none" href="{{ url_for('user.contact', user_id=user.id) }}">私信</a>
+            <span class="badge badge-primary badge-pill">0</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <a class="{% if title == '修改头像' %}
+                a-link{% else %} li-fade
+            {% endif %}  text-decoration-none" href="{{ url_for('user.edit_avatar', user_id=user.id) }}">修改头像</a>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <a class="{% if title == '修改密码' %}
+                a-link{% else %} li-fade
+            {% endif %}  text-decoration-none" href="{{ url_for('user.change_password', user_id=user.id) }}">修改密码</a>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <a class="{% if title == '隐私设置' %}
+                a-link{% else %} li-fade
+            {% endif %}  text-decoration-none" href="{{ url_for('user.privacy_setting', user_id=user.id) }}">隐私设置</a>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <a class="{% if title == '回收站' %}
+                a-link{% else %} li-fade
+            {% endif %}  text-decoration-none" href="{{ url_for('user.trash_station_post', user_id=user.id) }}">回收站</a>
+        </li>
+    </ul>
+{% endmacro %}
+
+{% macro post_list(posts) %}
+    <ul class="list-group list-group-flush ul-posts">
+        {% for post in posts %}
+            <li class="list-group-item">
+                <div class="d-flex flex-row-reverse">
+                    <!-- 如果当前登录用户id与post的作者id一致则显示帖子操作按钮 -->
+                    {% if current_user.id == post.author_id %}
+                        <a class="mb-1 text-decoration-none mr-2" href="#" id="postOperator" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fa fa-ellipsis-h"></i>
+                        </a>
+                        {% if request.endpoint == 'profile.index' %}
+                            <div class="dropdown-menu" x-placement="left" aria-labelledby="postOperator">
+                                <a class="dropdown-item" href="{{ url_for('user.post_delete_or_recover', post_id=post.id) }}">删除</a>
+                                <a class="dropdown-item" href="{{ url_for('post.set_anonymous', post_id=post.id) }}">匿名</a>
+                            </div>
+                        {% else %}
+                            <div class="dropdown-menu" x-placement="left" aria-labelledby="postOperator">
+                                <a class="dropdown-item" href="{{ url_for('user.post_delete_or_recover', post_id=post.id) }}">恢复</a>
+                            </div>
+                        {% endif %}
+
+                    {% endif %}
+                    <a href="{{ url_for('post.read', post_id=post.id) }}" class="d-none d-sm-block text-decoration-none a-title flex-grow-1">{{ post.title|striptags|truncate(25, True) }}</a>
+                    <a href="{{ url_for('post.read', post_id=post.id) }}" class="d-sm-none d-block text-decoration-none a-title-sm flex-grow-1">{{ post.title|striptags|truncate(15, True) }}</a>
+                </div>
+                <p>{{ post.textplain|striptags|truncate(100) }}</p>
+                <div class="d-flex">
+                    <a class="text-muted text-decoration-none d-none d-sm-block f-12-b"><i class="fa fa-thumbs-o-up mr-1"></i>点亮({{ post.likes }})&nbsp;&nbsp;</a>
+                    <a class="text-muted text-decoration-none d-none d-sm-block f-12-b"><i class="fa fa-thumbs-o-down mr-1"></i>点灭({{ post.unlikes }})&nbsp;&nbsp;</a>
+                    <a class="text-muted text-decoration-none f-12-b"><i class="fa fa-heart mr-1"></i>收藏({{ post.collects }})&nbsp;&nbsp;</a>
+                    <a class="text-muted text-decoration-none f-12-b"><i class="fa fa-comment-o mr-1"></i>评论({{ post.comments|length }})&nbsp;&nbsp;</a>
+                    <a class="text-decoration-none ml-2 text-muted flex-grow-1 text-left f-12-b" >
+                        <span data-toggle="tooltip" data-placement="right" data-timestamp="{{ post.create_time }}" data-delay="500" data-original-title="" title="{{ post.create_time }}">{{ moment(post.create_time, local=True).fromNow(refresh=True) }}</span>
+                    </a>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+    <div class="float-right mt-1">
+        {% if tag %}
+            {{ render_pagination(pagination, size='sm') }}
+        {% endif %}
+    </div>
+{% endmacro %}
+
+
+{% macro comment_list(comments) %}
+    <ul class="list-group list-group-flush ul-posts">
+        {% for comment in comments %}
+            <li class="list-group-item">
+                <div class="d-flex flex-row-reverse">
+                    {% if current_user.id == comment.author_id %}
+                        <a class="mb-1 text-decoration-none mr-2" href="#" id="postOperator" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fa fa-ellipsis-h"></i>
+                        </a>
+                        {% if request.endpoint == 'profile.profile_comment' %}
+                            <div class="dropdown-menu" x-placement="left" aria-labelledby="postOperator">
+                                <a class="dropdown-item" href="{{ url_for('user.comment_operator', comment_id=comment.id) }}">删除</a>
+                            </div>
+                        {% else %}
+                            <div class="dropdown-menu" x-placement="left" aria-labelledby="postOperator">
+                                <a class="dropdown-item" href="{{ url_for('user.comment_operator', comment_id=comment.id) }}">恢复</a>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+
+                    <a class="text-decoration-none text-muted flex-grow-1 text-left f-12-b" >
+                        <span data-toggle="tooltip" data-placement="right" data-timestamp="{{ comment.timestamps }}" data-delay="500" data-original-title="" title="{{ comment.timestamps }}">{{ moment(comment.timestamps, local=True).fromNow(refresh=True) }}</span>
+                    </a>
+                </div>
+
+
+                {% if comment.replied_id %}
+                    <div class="div-blockquote-comment">
+                        <p>引用<span class="span-blockquote">@{{ comment.replied.author.nickname }}</span>回复</p>
+                        {{ comment.replied.body|safe }}
+                    </div>
+                    {{ comment.body|safe }}
+                    <p class="mt-1 mb-0">来自帖子:<a class="text-decoration-none" href="{{ url_for('post.read', post_id=comment.post.id) }}">{{ comment.post.title }}</a></p>
+                {% else %}
+                    {{ comment.body|safe|string }}
+                    <p class="mt-1 mb-0">来自帖子:<a class="text-decoration-none" href="{{ url_for('post.read', post_id=comment.post.id) }}">{{ comment.post.title }}</a></p>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+    {% if tag %}
+        <div class="float-right mt-1">
+            {{ render_pagination(pagination, size='sm') }}
+        </div>
+    {% endif %}
+{% endmacro %}
+
+
+{% macro notifications(notices) %}
+    <ul class="list-group list-group-flush ul-posts mt-2">
+        {% for notice in notices %}
+            <li class="list-group-item">
+                <div class="d-flex">
+                    <p class="flex-grow-1 p-mt-1"><span class="span-blockquote">{{ notice.send_user }}</span><span>在{{ notice.timestamp }} 回复你:</span></p>
+                    <a class="mb-1 text-decoration-none mr-2 " href="#" id="noticeOperator" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fa fa-ellipsis-h"></i>
+                    </a>
+                    {% if request.endpoint == 'user.notifications' %}
+                        <div class="dropdown-menu" x-placement="left" aria-labelledby="noticeOperator">
+                            <a class="dropdown-item">未读</a>
+                            <a class="dropdown-item">删除</a>
+                        </div>
+                    {% else %}
+                        <div class="dropdown-menu" x-placement="left" aria-labelledby="noticeOperator">
+                            <a class="dropdown-item">已读</a>
+                            <a class="dropdown-item">删除</a>
+                        </div>
+                    {% endif %}
+                </div>
+                {{ notice.msg|safe }}
+                <p class="p-mt-1">来自:<a href="{{ url_for('post.read', post_id=notice.target_id) }}">{{ notice.target_name }}</a></p>
+            </li>
+        {% endfor %}
+    </ul>
+    <div class="float-right">
+        {% if tag %}
+            {{ render_pagination(pagination) }}
+        {% endif %}
+    </div>
+{% endmacro %}

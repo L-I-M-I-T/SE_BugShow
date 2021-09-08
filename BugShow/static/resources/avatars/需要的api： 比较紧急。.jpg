@@ -1,0 +1,37 @@
+### 需要的api： 比较紧急。
+
+1 mainPage:
+
+主页需要三个api：展示天气的api，展示信息的api，以及N串x和y随机数。（可以用任何一个基金的前六个月x y 但是你们要写好
+
+
+
+2 Products Information: 已完成但是数据不够。展示Products的信息。
+
+3 loans Information:已完成但是数据不够，展示许多Loans的信息
+
+4 Product detail: 
+
+- 接受参数：Borrow信息和ProductCode,
+
+返回：Product具体信息。 
+
+- 在点击Approve页面后会发送购买Product的请求，并且附送请求参数。
+
+5 Loan Detail 同上
+
+6 SendMessage api 通过请求Ttile,content， receiver,target
+
+来发送相应的信息。
+
+7 信息页面：通过UserCode拿到这个账户自己的信息。
+
+8 JudgeRegister页面：返回UserCode(superUser权限) 
+
+返回所有账户申请的页面。
+
+9 JudgeApplying页面:同上。返回所有购买loan和product的申请。
+
+10 FinancialSendLoan: 发布：Loan的信息返回是否成功
+
+11 FinancialSendProduct: 发布产品的信息，返回是否成功

@@ -1,0 +1,186 @@
+/*基础样式*/
+
+html{
+    height: 100%;
+}
+
+body{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+main{
+    flex: 1 0 auto;
+}
+
+header{
+    flex: 0 0 auto;
+}
+
+.help-block{
+    color: #e74c3c;
+    font-size: 12px;
+}
+
+.comment-h1{
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.comment-h2{
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.comment-h3{
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.comment-h4{
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.p-break{
+    word-break: break-all;
+}
+
+.img-emoji{
+    width: 20px;
+    height: 20px;
+}
+
+@media screen and (max-width: 578px) {
+    .img-emoji{
+        width: 15px;
+        height: 15px;
+    }
+}
+
+.nav-avatar{
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+}
+
+.a-white{
+    color: white;
+    text-decoration: none;
+}
+
+.a-white:hover{
+    color: #cccccc;
+}
+
+.span-hand{
+    cursor: pointer;
+}
+
+.ul-posts{
+    border-radius: 5px;
+}
+
+.img-profile-bg{
+    border-radius: 5px;
+    height: 150px;
+    width: 150px;
+    background-size: cover;
+    background: no-repeat center;
+}
+
+.img-profile-bg-50{
+    border-radius: 5px;
+    height: 50px;
+    width: 50px;
+    background-size: cover;
+    background: no-repeat center;
+}
+
+@media screen and (max-width: 567px){
+    .img-profile-bg{
+        height: 75px;
+        width: 75px;
+    }
+    .div-center-md{
+        text-align: center;
+    }
+}
+
+.user-card {
+    float: left;
+    width: 20%;
+    max-height: 180px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 0;
+}
+
+.avatar-m {
+    width: 100px;
+    height: 100px;
+}
+
+.img-pd10{
+    padding: 10px 10px 10px 0;
+}
+
+.span-blockquote{
+    color: #80bdff;
+}
+
+.p-mt-0{
+    margin-bottom: 0;
+}
+
+.p-mt-1{
+    margin-bottom: 3px;
+}
+
+.p-hint{
+    color: #147b14;
+    margin-bottom: 2px;
+    font-weight: bold;
+    font-size: 12px;
+    display: none;
+}
+
+.p-hint-error{
+    color: rgba(255,18,23,0.8);
+    margin-bottom: 2px;
+    font-weight: bold;
+    font-size: 12px;
+    display: none;
+}
+
+.avatar-50{
+    width: 50px;
+    height: 50px;
+}
+
+.f-12{
+    font-size: 12px;
+}
+
+#container{
+    position:relative;  
+    width:100%;
+    min-height:100%;
+}
+
+#page{
+    
+    margin: 0px auto;
+    padding-top: 50px;
+    padding-bottom: 50px;  
+    
+}
+
+footer{
+    width: 100%;
+    
+    position:absolute;
+    bottom:0px;
+    left:0px;  
+}

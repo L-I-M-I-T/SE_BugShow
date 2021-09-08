@@ -1,0 +1,40 @@
+<!--
+页面名称:change-passwd.html
+页面功能:用户信息修改--密码
+-->
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+{% block title %}
+    修改密码
+{% endblock %}
+{% block content %}
+    <body>
+    <main>
+        <div class="container">
+            {% include "_flash.html" %}
+            <div class="jumbotron pt-5 pb-3 mt-5">
+                <div class="row">
+                    <div class="col-md-8">
+                        <img src="{{ url_for('static', filename='img/index.png') }}" class="rounded img-fluid">
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card mb-3 w-100 bg-light align-self-center">
+                            <div class="card-header"><h4 class="text-muted"><strong>修改密码</strong></h4></div>
+                            <div class="card-body ">
+                                <form class="bs-component" action="/auth/change-passwd" method="post">
+                                    {{ form.csrf_token }}
+                                    {{ wtf.form_field(form.old_password) }}
+                                    {{ wtf.form_field(form.password1) }}
+                                    {{ wtf.form_field(form.password2) }}
+                                    {{ form.set }}
+                                    <hr>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    </body>
+{% endblock %}

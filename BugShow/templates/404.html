@@ -1,0 +1,25 @@
+<!--
+页面名称:404.html
+页面功能:访问错误时显示界面
+说明:因为每一个按钮基本实现了页面的全连接,实际未实装
+-->
+{% extends "base.html" %}
+{% block title %}
+    页面未找到
+{% endblock %}
+{% block content %}
+    <main>
+        <div class="container mt-2">
+            <div class="card-body">
+                <div class="card text-white bg-dark mb-3">
+                    <div class="card-body">
+                        <img src="{{ url_for('static', filename='img/404.png') }}" class="img-fluid d-block mx-auto">
+                    </div>
+                    <div class="card-footer text-right">
+                        <a class="btn btn-outline-danger" href="/">返回主页</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+{% endblock %}
